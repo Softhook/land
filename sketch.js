@@ -1,7 +1,7 @@
 
 // Global State
-let currentTileDefName, currentRotation = 0, placedTiles, camX = 0, camY = 0;
-const TILE_SIZE = 50, PAN_SPEED = 10;
+let currentTileDefName, currentRotation = 0, placedTiles, camX = 0, camY = 0, zoomLevel = 1;
+const TILE_SIZE = 50, PAN_SPEED = 10, MIN_ZOOM = 0.5, MAX_ZOOM = 3;
 
 // --- Tile Definitions ---
 const TILE_DEFINITIONS = {
@@ -35,29 +35,115 @@ const TILE_DEFINITIONS = {
       fill(0, 0, 30); rectMode(CENTER); rect(0, s / 4, s / 3, s / 2);
     }
   },
-  grass_city: {
+  grass_village: {
     color: [120, 60, 70], connections: ["G", "G", "G", "G"],
     drawPattern: s => {
-      noStroke(); fill(0, 0, 90); rectMode(CENTER);
-      rect(0, -s * 0.1, s * 0.3, s * 0.3);
-      rect(-s * 0.15, s * 0.1, s * 0.15, s * 0.2);
-      rect(s * 0.15, s * 0.1, s * 0.15, s * 0.2);
-      fill(0, 0, 30);
-      rect(0, -s * 0.1, s * 0.05, s * 0.05);
-      rect(-s * 0.15, s * 0.1, s * 0.03, s * 0.03);
-      rect(s * 0.15, s * 0.1, s * 0.03, s * 0.03);
+      noStroke(); rectMode(CENTER);
+      
+      // Main house with timber frame
+      fill(30, 40, 80); rect(0, -s * 0.05, s * 0.25, s * 0.25); // Stone base
+      fill(25, 60, 85); rect(0, -s * 0.2, s * 0.22, s * 0.15); // Upper timber frame
+      
+      // Triangular roof
+      fill(0, 70, 40); // Dark red/brown roof
+      triangle(0, -s * 0.35, -s * 0.15, -s * 0.25, s * 0.15, -s * 0.25);
+      
+      // Left cottage
+      fill(30, 35, 75); rect(-s * 0.22, s * 0.08, s * 0.12, s * 0.2);
+      fill(0, 70, 45); // Roof
+      triangle(-s * 0.22, -s * 0.08, -s * 0.3, s * 0.02, -s * 0.14, s * 0.02);
+      
+      // Right cottage
+      fill(35, 30, 78); rect(s * 0.2, s * 0.1, s * 0.1, s * 0.15);
+      fill(0, 65, 42); // Roof
+      triangle(s * 0.2, -s * 0.05, s * 0.14, s * 0.03, s * 0.26, s * 0.03);
+      
+      // Timber frame details on main house
+      stroke(25, 80, 30); strokeWeight(0.8);
+      line(-s * 0.08, -s * 0.25, -s * 0.08, -s * 0.12);
+      line(s * 0.08, -s * 0.25, s * 0.08, -s * 0.12);
+      line(-s * 0.11, -s * 0.18, s * 0.11, -s * 0.18);
+      noStroke();
+      
+      // Windows with shutters
+      fill(20, 30, 40); // Dark windows
+      rect(-s * 0.06, -s * 0.18, s * 0.025, s * 0.03);
+      rect(s * 0.06, -s * 0.18, s * 0.025, s * 0.03);
+      rect(0, -s * 0.08, s * 0.03, s * 0.04);
+      
+      // Window shutters
+      fill(0, 60, 50);
+      rect(-s * 0.08, -s * 0.18, s * 0.01, s * 0.03);
+      rect(-s * 0.04, -s * 0.18, s * 0.01, s * 0.03);
+      rect(s * 0.04, -s * 0.18, s * 0.01, s * 0.03);
+      rect(s * 0.08, -s * 0.18, s * 0.01, s * 0.03);
+      
+      // Door
+      fill(25, 70, 35); rect(0, s * 0.02, s * 0.04, s * 0.08);
+      fill(0, 0, 20); circle(-s * 0.01, s * 0.02, s * 0.008); // Door handle
+      
+      // Cottage windows
+      fill(20, 30, 40);
+      rect(-s * 0.22, s * 0.05, s * 0.02, s * 0.025);
+      rect(s * 0.2, s * 0.08, s * 0.015, s * 0.02);
+      
+      // Chimney
+      fill(30, 20, 60); rect(s * 0.08, -s * 0.4, s * 0.03, s * 0.1);
+      
+      // Smoke
+      fill(0, 0, 80, 40); // Light gray smoke
+      circle(s * 0.08, -s * 0.42, s * 0.02);
+      circle(s * 0.09, -s * 0.45, s * 0.015);
     }
   },
   grass_castle: {
     color: [120, 60, 70], connections: ["G", "G", "G", "G"],
     drawPattern: s => {
-      noStroke(); fill(0, 0, 80); rectMode(CENTER);
-      rect(0, 0, s * 0.4, s * 0.25);
-      rect(0, -s * 0.15, s * 0.15, s * 0.3);
-      rect(-s * 0.15, s * 0.05, s * 0.1, s * 0.2);
-      rect(s * 0.15, s * 0.05, s * 0.1, s * 0.2);
-      fill(0, 0, 70); rect(0, -s * 0.25, s * 0.15, s * 0.05);
-      fill(0, 80, 90); rect(s * 0.03, -s * 0.3, s * 0.08, s * 0.05);
+      noStroke(); rectMode(CENTER);
+      
+      // Main castle wall with stone texture
+      fill(30, 15, 75); rect(0, 0, s * 0.45, s * 0.28);
+      fill(30, 25, 70); rect(0, s * 0.02, s * 0.4, s * 0.2); // Shadow
+      
+      // Central keep tower
+      fill(30, 20, 80); rect(0, -s * 0.18, s * 0.18, s * 0.35);
+      
+      // Side towers
+      fill(30, 18, 78);
+      rect(-s * 0.18, s * 0.02, s * 0.12, s * 0.25);
+      rect(s * 0.18, s * 0.02, s * 0.12, s * 0.25);
+      
+      // Battlements (crenellations)
+      fill(30, 15, 82);
+      rect(-s * 0.15, -s * 0.28, s * 0.04, s * 0.08);
+      rect(-s * 0.05, -s * 0.28, s * 0.04, s * 0.08);
+      rect(s * 0.05, -s * 0.28, s * 0.04, s * 0.08);
+      rect(s * 0.15, -s * 0.28, s * 0.04, s * 0.08);
+      
+      // Side tower battlements
+      rect(-s * 0.18, -s * 0.12, s * 0.03, s * 0.06);
+      rect(s * 0.18, -s * 0.12, s * 0.03, s * 0.06);
+      
+      // Castle gate
+      fill(0, 0, 25); rect(0, s * 0.08, s * 0.08, s * 0.12);
+      fill(25, 40, 40); rect(0, s * 0.05, s * 0.06, s * 0.06); // Gate details
+      
+      // Arrow slits
+      fill(0, 0, 20);
+      rect(-s * 0.06, -s * 0.1, s * 0.01, s * 0.04);
+      rect(s * 0.06, -s * 0.1, s * 0.01, s * 0.04);
+      rect(-s * 0.18, -s * 0.02, s * 0.008, s * 0.03);
+      rect(s * 0.18, -s * 0.02, s * 0.008, s * 0.03);
+      
+      // Banner/flag
+      fill(0, 85, 85); rect(s * 0.02, -s * 0.35, s * 0.08, s * 0.06);
+      fill(30, 30, 50); rectMode(CORNER); rect(s * 0.01, -s * 0.38, s * 0.01, s * 0.1); // Flagpole
+      
+      // Stone block details
+      stroke(30, 20, 60); strokeWeight(0.3);
+      line(-s * 0.1, -s * 0.05, s * 0.1, -s * 0.05);
+      line(-s * 0.15, s * 0.05, s * 0.15, s * 0.05);
+      noStroke();
     }
   },
   grass_mountain: {
@@ -93,8 +179,14 @@ class Tile {
 const DIRECTIONS = [{ dx: 0, dy: -1 }, { dx: 1, dy: 0 }, { dx: 0, dy: 1 }, { dx: -1, dy: 0 }];
 const OPPOSITE_MAP = [2, 3, 0, 1];
 
-const gridToPixel = (gx, gy) => ({ x: gx * TILE_SIZE + TILE_SIZE / 2 + camX, y: gy * TILE_SIZE + TILE_SIZE / 2 + camY });
-const pixelToGrid = (mx, my) => ({ x: floor((mx - camX) / TILE_SIZE), y: floor((my - camY) / TILE_SIZE) });
+const gridToPixel = (gx, gy) => ({ 
+  x: gx * TILE_SIZE * zoomLevel + TILE_SIZE * zoomLevel / 2 + camX, 
+  y: gy * TILE_SIZE * zoomLevel + TILE_SIZE * zoomLevel / 2 + camY 
+});
+const pixelToGrid = (mx, my) => ({ 
+  x: floor((mx - camX) / (TILE_SIZE * zoomLevel)), 
+  y: floor((my - camY) / (TILE_SIZE * zoomLevel)) 
+});
 
 // --- Game Logic ---
 const canPlaceTileAt = (tile, gridX, gridY) => {
@@ -123,7 +215,7 @@ const cycleTileType = () => {
 
 const resetGame = () => {
   placedTiles = new Map();
-  [currentTileDefName, currentRotation, camX, camY] = [Object.keys(TILE_DEFINITIONS)[0], 0, width / 2, height / 2];
+  [currentTileDefName, currentRotation, camX, camY, zoomLevel] = [Object.keys(TILE_DEFINITIONS)[0], 0, width / 2, height / 2, 1];
   console.clear(); console.log("Game Reset");
 };
 
@@ -168,8 +260,10 @@ function draw() {
   
   for (const tile of placedTiles.values()) {
     const { x: sX, y: sY } = gridToPixel(tile.gridX, tile.gridY);
-    if (sX > -TILE_SIZE * 2 && sX < width + TILE_SIZE * 2 && sY > -TILE_SIZE * 2 && sY < height + TILE_SIZE * 2) {
-      drawTileObject(tile, sX, sY, TILE_SIZE);
+    const tileRenderSize = TILE_SIZE * zoomLevel;
+    if (sX > -tileRenderSize * 2 && sX < width + tileRenderSize * 2 && 
+        sY > -tileRenderSize * 2 && sY < height + tileRenderSize * 2) {
+      drawTileObject(tile, sX, sY, tileRenderSize);
     }
   }
   
@@ -178,11 +272,11 @@ function draw() {
     const mouseGridPos = pixelToGrid(mouseX, mouseY);
     const { x: pX, y: pY } = gridToPixel(mouseGridPos.x, mouseGridPos.y);
     const isValid = canPlaceTileAt(previewTile, mouseGridPos.x, mouseGridPos.y);
-    drawTileObject(previewTile, pX, pY, TILE_SIZE, true, isValid);
+    drawTileObject(previewTile, pX, pY, TILE_SIZE * zoomLevel, true, isValid);
   }
   
   fill(0); textSize(16); textAlign(LEFT, TOP);
-  text(`Tile: ${currentTileDefName || "N"} (T)\nRot: ${currentRotation * 90}° (R)\nPlace. Pan. (C)lear.`, 10, 10);
+  text(`Tile: ${currentTileDefName || "N"} (T)\nRot: ${currentRotation * 90}° (R)\nZoom: ${zoomLevel.toFixed(1)}x (+/-)\nPlace. Pan. (C)lear.`, 10, 10);
 }
 
 function mousePressed() {
@@ -197,7 +291,11 @@ function keyPressed() {
     't': cycleTileType, 'T': cycleTileType,
     'r': () => currentRotation = (currentRotation + 1) % 4,
     'R': () => currentRotation = (currentRotation + 1) % 4,
-    'c': resetGame, 'C': resetGame
+    'c': resetGame, 'C': resetGame,
+    '+': () => zoomLevel = Math.min(zoomLevel * 1.2, MAX_ZOOM),
+    '=': () => zoomLevel = Math.min(zoomLevel * 1.2, MAX_ZOOM),
+    '-': () => zoomLevel = Math.max(zoomLevel / 1.2, MIN_ZOOM),
+    '_': () => zoomLevel = Math.max(zoomLevel / 1.2, MIN_ZOOM)
   };
   
   const arrowActions = {
