@@ -1,4 +1,3 @@
-
 // Global State
 let currentTileDefName, currentRotation = 0, placedTiles, camX = 0, camY = 0, zoomLevel = 1;
 const TILE_SIZE = 50, PAN_SPEED = 30, MIN_ZOOM = 0.5, MAX_ZOOM = 3;
@@ -23,6 +22,18 @@ const TILE_DEFINITIONS = {
   road_start: {
     color: [120, 60, 60], connections: ["R", "G", "G", "G"],
     drawPattern: s => { fill(0, 0, 30); noStroke(); rectMode(CENTER); rect(0, -s / 4, s / 3, s / 2); }
+  },
+  road_split: {
+    color: [120, 60, 60], connections: ["R", "R", "R", "G"],
+    drawPattern: s => {
+      fill(0, 0, 30); noStroke(); rectMode(CENTER);
+      // North road segment (from center to top edge)
+      rect(0, -s / 4, s / 3, s / 2);
+      // East road segment (from center to right edge)  
+      rect(s / 4, 0, s / 2, s / 3);
+      // South road segment (from center to bottom edge)
+      rect(0, s / 4, s / 3, s / 2);
+    }
   },
   water_full: { color: [200, 70, 80], connections: ["W", "W", "W", "W"] },
   water_grass_split_LR: {
