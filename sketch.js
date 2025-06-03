@@ -1,7 +1,9 @@
 
 // Global State
 let currentTileDefName, currentRotation = 0, placedTiles, camX = 0, camY = 0, zoomLevel = 1;
-const TILE_SIZE = 50, PAN_SPEED = 10, MIN_ZOOM = 0.5, MAX_ZOOM = 3;
+const TILE_SIZE = 50, PAN_SPEED = 30, MIN_ZOOM = 0.5, MAX_ZOOM = 3;
+const DIRECTIONS = [{ dx: 0, dy: -1 }, { dx: 1, dy: 0 }, { dx: 0, dy: 1 }, { dx: -1, dy: 0 }];
+const OPPOSITE_MAP = [2, 3, 0, 1];
 
 // --- Tile Definitions ---
 const TILE_DEFINITIONS = {
@@ -243,9 +245,6 @@ class Tile {
 }
 
 // --- Constants & Utilities ---
-const DIRECTIONS = [{ dx: 0, dy: -1 }, { dx: 1, dy: 0 }, { dx: 0, dy: 1 }, { dx: -1, dy: 0 }];
-const OPPOSITE_MAP = [2, 3, 0, 1];
-
 const gridToPixel = (gx, gy) => ({ 
   x: gx * TILE_SIZE * zoomLevel + TILE_SIZE * zoomLevel / 2 + camX, 
   y: gy * TILE_SIZE * zoomLevel + TILE_SIZE * zoomLevel / 2 + camY 
