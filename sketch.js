@@ -31,8 +31,67 @@ const TILE_DEFINITIONS = {
     color: [120, 60, 60], connections: ["W", "G", "R", "G"],
     drawPattern: s => {
       noStroke(); fill(TILE_DEFINITIONS.water_full.color);
-      rectMode(CORNER); rect(-s / 2, -s / 2, s, s / 2);
+      // Curved water edge using arc
+      arc(0, -s / 2, s, s / 2, 0, PI);
       fill(0, 0, 30); rectMode(CENTER); rect(0, s / 4, s / 3, s / 2);
+    }
+  },
+  water_road_straight_harbour: {
+    color: [120, 60, 60], connections: ["W", "G", "R", "G"],
+    drawPattern: s => {
+      noStroke(); fill(TILE_DEFINITIONS.water_full.color);
+      // Curved water edge using arc
+      arc(0, -s / 2, s, s / 2, 0, PI);
+      
+      // Road
+      fill(0, 0, 30); rectMode(CENTER); rect(0, s / 4, s / 3, s / 2);
+      
+      // Harbor structure
+      rectMode(CENTER);
+      
+      // Main dock platform
+      fill(25, 30, 50); rect(0, -s * 0.15, s * 0.35, s * 0.12);
+      
+      // Wooden dock posts/pillars
+      fill(25, 60, 35);
+      rect(-s * 0.12, -s * 0.2, s * 0.02, s * 0.08);
+      rect(s * 0.12, -s * 0.2, s * 0.02, s * 0.08);
+      rect(-s * 0.06, -s * 0.22, s * 0.015, s * 0.06);
+      rect(s * 0.06, -s * 0.22, s * 0.015, s * 0.06);
+      
+      // Small boat
+      fill(25, 70, 40);
+      ellipse(-s * 0.08, -s * 0.3, s * 0.08, s * 0.04);
+      
+      // Boat mast
+      stroke(25, 80, 30); strokeWeight(0.8);
+      line(-s * 0.08, -s * 0.32, -s * 0.08, -s * 0.4);
+      noStroke();
+      
+      // Small sail
+      fill(0, 0, 90); triangle(-s * 0.08, -s * 0.4, -s * 0.11, -s * 0.35, -s * 0.08, -s * 0.33);
+      
+      // Harbor building/warehouse
+      fill(30, 40, 65); rect(s * 0.08, -s * 0.08, s * 0.12, s * 0.08);
+      
+      // Warehouse roof
+      fill(0, 60, 45);
+      triangle(s * 0.08, -s * 0.15, s * 0.02, -s * 0.12, s * 0.14, -s * 0.12);
+      
+      // Warehouse door
+      fill(25, 50, 30); rect(s * 0.08, -s * 0.06, s * 0.03, s * 0.04);
+      
+      // Cargo crates
+      fill(30, 50, 45);
+      rect(s * 0.15, -s * 0.12, s * 0.025, s * 0.025);
+      rect(s * 0.18, -s * 0.1, s * 0.02, s * 0.02);
+      rect(s * 0.13, -s * 0.08, s * 0.02, s * 0.02);
+      
+      // Rope/chains on dock
+      stroke(25, 40, 40); strokeWeight(0.5);
+      line(-s * 0.15, -s * 0.15, -s * 0.1, -s * 0.25);
+      line(s * 0.15, -s * 0.15, s * 0.1, -s * 0.25);
+      noStroke();
     }
   },
   grass_village: {
@@ -242,7 +301,7 @@ const drawTileObject = (tile, x, y, size, isPreview = false, isValid = true) => 
   tile.definition.connections.forEach((conn, i) => {
     if (conn) {
       const positions = [[0, -size * 0.35], [size * 0.35, 0], [0, size * 0.35], [-size * 0.35, 0]];
-      text(conn, ...positions[i]);
+      //text(conn, ...positions[i]);
     }
   });
   
