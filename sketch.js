@@ -276,10 +276,103 @@ const placeTile = (id, gridX, gridY, rotation) => {
   }
 };
 
+const getCompatibleTiles = (gridX, gridY) => {
+  const allTileKeys = Object.keys(TILE_DEFINITIONS);
+  const compatibleTiles = [];
+  
+  for (const tileKey of allTileKeys) {
+    for (let rotation = 0; rotation < 4; rotation++) {
+      const testTile = new Tile(tileKey, gridX, gridY, rotation);
+      if (canPlaceTileAt(testTile, gridX, gridY)) {
+        compatibleTiles.push({ key: tileKey, rotation });
+        break; // Only need to find one valid rotation per tile type
+      }
+    }
+  }
+  
+  return compatibleTiles;
+};
+
 const cycleTileType = () => {
-  const keys = Object.keys(TILE_DEFINITIONS);
-  currentTileDefName = keys[(keys.indexOf(currentTileDefName) + 1) % keys.length];
-  currentRotation = 0;
+  const mouseGridPos = pixelToGrid(mouseX, mouseY);
+  
+  // Check if there are any adjacent placed tiles
+  const hasAdjacentTiles = DIRECTIONS.some(dir => {
+    const adjacentKey = `${mouseGridPos.x + dir.dx},${mouseGridPos.y + dir.dy}`;
+    return placedTiles.has(adjacentKey);
+  });
+  
+  if (hasAdjacentTiles) {
+    // Filter to only compatible tiles
+    const compatibleTiles = getCompatibleTiles(mouseGridPos.x, mouseGridPos.y);
+    
+    if (compatibleTiles.length === 0) {
+      console.log("No compatible tiles available at this position");
+      return;
+    }
+    
+    // Find current tile in compatible list
+    const currentIndex = compatibleTiles.findIndex(tile => 
+      tile.key === currentTileDefName && tile.rotation === currentRotation
+    );
+    
+    if (currentIndex === -1) {
+      // Current tile is not compatible, switch to first compatible one
+      currentTileDefName = compatibleTiles[0].key;
+      currentRotation = compatibleTiles[0].rotation;
+    } else {
+      // Cycle to next compatible tile
+      const nextIndex = (currentIndex + 1) % compatibleTiles.length;
+      currentTileDefName = compatibleTiles[nextIndex].key;
+      currentRotation = compatibleTiles[nextIndex].rotation;
+    }
+  } else {
+    // No adjacent tiles, allow cycling through all tiles
+    const keys = Object.keys(TILE_DEFINITIONS);
+    currentTileDefName = keys[(keys.indexOf(currentTileDefName) + 1) % keys.length];
+    currentRotation = 0;
+  }
+};
+
+const rotateCurrentTile = () => {
+  const mouseGridPos = pixelToGrid(mouseX, mouseY);
+  
+  // Check if there are any adjacent placed tiles
+  const hasAdjacentTiles = DIRECTIONS.some(dir => {
+    const adjacentKey = `${mouseGridPos.x + dir.dx},${mouseGridPos.y + dir.dy}`;
+    return placedTiles.has(adjacentKey);
+  });
+  
+  if (hasAdjacentTiles) {
+    // Get all valid rotations for current tile type at this position
+    const validRotations = [];
+    for (let rotation = 0; rotation < 4; rotation++) {
+      const testTile = new Tile(currentTileDefName, mouseGridPos.x, mouseGridPos.y, rotation);
+      if (canPlaceTileAt(testTile, mouseGridPos.x, mouseGridPos.y)) {
+        validRotations.push(rotation);
+      }
+    }
+    
+    if (validRotations.length === 0) {
+      console.log("No valid rotations available for this tile at this position");
+      return;
+    }
+    
+    // Find current rotation in valid list
+    const currentIndex = validRotations.indexOf(currentRotation);
+    
+    if (currentIndex === -1) {
+      // Current rotation is not valid, switch to first valid one
+      currentRotation = validRotations[0];
+    } else {
+      // Cycle to next valid rotation
+      const nextIndex = (currentIndex + 1) % validRotations.length;
+      currentRotation = validRotations[nextIndex];
+    }
+  } else {
+    // No adjacent tiles, allow normal rotation
+    currentRotation = (currentRotation + 1) % 4;
+  }
 };
 
 const resetGame = () => {
@@ -373,8 +466,9 @@ function keyPressed() {
   
   const keyActions = {
     't': cycleTileType, 'T': cycleTileType,
-    'r': () => currentRotation = (currentRotation + 1) % 4,
-    'R': () => currentRotation = (currentRotation + 1) % 4,
+    'r': rotateCurrentTile,
+    'R': rotateCurrentTile,
+    'c': resetGame, 'C': resetGame,
     'c': resetGame, 'C': resetGame,
     '+': () => zoomAtCenter(Math.min(zoomLevel * 1.2, MAX_ZOOM)),
     '=': () => zoomAtCenter(Math.min(zoomLevel * 1.2, MAX_ZOOM)),
