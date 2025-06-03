@@ -204,7 +204,9 @@ const canPlaceTileAt = (tile, gridX, gridY) => {
 
 const placeTile = (id, gridX, gridY, rotation) => {
   const tile = new Tile(id, gridX, gridY, rotation);
-  if (canPlaceTileAt(tile, gridX, gridY)) placedTiles.set(`${gridX},${gridY}`, tile);
+  if (canPlaceTileAt(tile, gridX, gridY)) {
+    placedTiles.set(`${gridX},${gridY}`, tile);
+  }
 };
 
 const cycleTileType = () => {
@@ -287,15 +289,30 @@ function mousePressed() {
 }
 
 function keyPressed() {
+  const zoomAtCenter = (newZoomLevel) => {
+    const oldZoom = zoomLevel;
+    zoomLevel = newZoomLevel;
+    
+    // Calculate the world point that's currently at screen center
+    const screenCenterX = width / 2;
+    const screenCenterY = height / 2;
+    const worldCenterX = (screenCenterX - camX) / oldZoom;
+    const worldCenterY = (screenCenterY - camY) / oldZoom;
+    
+    // Adjust camera to keep that world point at screen center with new zoom
+    camX = screenCenterX - worldCenterX * zoomLevel;
+    camY = screenCenterY - worldCenterY * zoomLevel;
+  };
+  
   const keyActions = {
     't': cycleTileType, 'T': cycleTileType,
     'r': () => currentRotation = (currentRotation + 1) % 4,
     'R': () => currentRotation = (currentRotation + 1) % 4,
     'c': resetGame, 'C': resetGame,
-    '+': () => zoomLevel = Math.min(zoomLevel * 1.2, MAX_ZOOM),
-    '=': () => zoomLevel = Math.min(zoomLevel * 1.2, MAX_ZOOM),
-    '-': () => zoomLevel = Math.max(zoomLevel / 1.2, MIN_ZOOM),
-    '_': () => zoomLevel = Math.max(zoomLevel / 1.2, MIN_ZOOM)
+    '+': () => zoomAtCenter(Math.min(zoomLevel * 1.2, MAX_ZOOM)),
+    '=': () => zoomAtCenter(Math.min(zoomLevel * 1.2, MAX_ZOOM)),
+    '-': () => zoomAtCenter(Math.max(zoomLevel / 1.2, MIN_ZOOM)),
+    '_': () => zoomAtCenter(Math.max(zoomLevel / 1.2, MIN_ZOOM))
   };
   
   const arrowActions = {
