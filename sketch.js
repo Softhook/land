@@ -391,6 +391,111 @@ const resetGame = () => {
   console.clear(); console.log("Game Reset");
 };
 
+// --- Landscape Integration Functions ---
+function downloadLandscape() {
+  if (placedTiles.size === 0) {
+    alert("No landscape to download! Generate or create a landscape first.");
+    return;
+  }
+  
+  const tiles = [];
+  for (const [key, tile] of placedTiles.entries()) {
+    tiles.push({
+      id: tile.id,
+      gridX: tile.gridX,
+      gridY: tile.gridY,
+      rotation: tile.rotation
+    });
+  }
+  
+  const landscapeData = {
+    width: 50,
+    height: 50,
+    tiles: tiles,
+    metadata: {
+      tileCount: tiles.length,
+      exportedAt: new Date().toISOString(),
+      version: "1.0"
+    }
+  };
+  
+  const dataStr = JSON.stringify(landscapeData, null, 2);
+  const dataBlob = new Blob([dataStr], {type: 'application/json'});
+  const url = URL.createObjectURL(dataBlob);
+  
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `landscape_${Date.now()}.json`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+  
+  console.log(`Downloaded landscape with ${tiles.length} tiles`);
+}
+
+function loadLandscapeFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const landscapeData = JSON.parse(e.target.result);
+      
+      if (!landscapeData.tiles || !Array.isArray(landscapeData.tiles)) {
+        alert("Invalid landscape file format!");
+        return;
+      }
+      
+      // Clear existing tiles
+      placedTiles.clear();
+      
+      // Load tiles
+      for (const tileData of landscapeData.tiles) {
+        if (TILE_DEFINITIONS[tileData.id]) {
+          const tile = new Tile(tileData.id, tileData.gridX, tileData.gridY, tileData.rotation);
+          placedTiles.set(`${tileData.gridX},${tileData.gridY}`, tile);
+        }
+      }
+      
+      console.log(`Loaded landscape with ${landscapeData.tiles.length} tiles`);
+      
+      // Reset camera to show the landscape
+      camX = width / 2 - (25 * TILE_SIZE * zoomLevel);
+      camY = height / 2 - (25 * TILE_SIZE * zoomLevel);
+      
+    } catch (error) {
+      alert("Error loading landscape file: " + error.message);
+      console.error("Landscape load error:", error);
+    }
+  };
+  
+  reader.readAsText(file);
+}
+
+// Enhanced landscape generation function
+function generateAndLoadLandscape() {
+  console.log("Generating new 50x50 landscape...");
+  
+  try {
+    // Use the landscape generator
+    const tiles = generateLandscape(50, 50);
+    loadLandscapeIntoGame(tiles);
+    
+    // Reset camera to show the generated landscape
+    camX = width / 2 - (25 * TILE_SIZE * zoomLevel);
+    camY = height / 2 - (25 * TILE_SIZE * zoomLevel);
+    zoomLevel = 0.8; // Zoom out to see more of the landscape
+    
+    console.log("Landscape generation complete!");
+    
+  } catch (error) {
+    console.error("Error generating landscape:", error);
+    alert("Error generating landscape. Check console for details.");
+  }
+}
+
 // --- Drawing ---
 const drawTileObject = (tile, x, y, size, isPreview = false, isValid = true) => {
   push();
@@ -448,7 +553,7 @@ function draw() {
   }
   
   fill(0); textSize(16); textAlign(LEFT, TOP);
-  text(`Tile: ${currentTileDefName || "N"} (T)\nRot: ${currentRotation * 90}° (R)\nZoom: ${zoomLevel.toFixed(1)}x (+/-)\nPlace. Pan. (C)lear.`, 10, 10);
+  text(`Tile: ${currentTileDefName || "N"} (T)\nRot: ${currentRotation * 90}° (R)\nZoom: ${zoomLevel.toFixed(1)}x (+/-)\nPlace. Pan. (C)lear. (G)enerate.`, 10, 10);
 }
 
 function mousePressed() {
@@ -479,7 +584,7 @@ function keyPressed() {
     'r': rotateCurrentTile,
     'R': rotateCurrentTile,
     'c': resetGame, 'C': resetGame,
-    'c': resetGame, 'C': resetGame,
+    'g': generateAndLoadLandscape, 'G': generateAndLoadLandscape,
     '+': () => zoomAtCenter(Math.min(zoomLevel * 1.2, MAX_ZOOM)),
     '=': () => zoomAtCenter(Math.min(zoomLevel * 1.2, MAX_ZOOM)),
     '-': () => zoomAtCenter(Math.max(zoomLevel / 1.2, MIN_ZOOM)),
