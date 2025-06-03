@@ -27,6 +27,14 @@ const TILE_DEFINITIONS = {
     color: [120, 60, 70], connections: ["G", "G", "G", "W"],
     drawPattern: s => { noStroke(); fill(TILE_DEFINITIONS.water_full.color); arc(-s / 2, 0, s / 2, s, -HALF_PI, HALF_PI); }
   },
+  water_corner: {
+    color: [120, 60, 70], connections: ["W", "W", "G", "G"],
+    drawPattern: s => {
+      noStroke(); fill(TILE_DEFINITIONS.water_full.color);
+      // Draw arc from top-left to bottom-right with center at top-right
+      arc(s / 2, -s / 2, s*2, s*2, HALF_PI, PI);
+    }
+  },
   water_road_straight: {
     color: [120, 60, 60], connections: ["W", "G", "R", "G"],
     drawPattern: s => {
@@ -301,7 +309,7 @@ const drawTileObject = (tile, x, y, size, isPreview = false, isValid = true) => 
   tile.definition.connections.forEach((conn, i) => {
     if (conn) {
       const positions = [[0, -size * 0.35], [size * 0.35, 0], [0, size * 0.35], [-size * 0.35, 0]];
-      //text(conn, ...positions[i]);
+      text(conn, ...positions[i]);
     }
   });
   
