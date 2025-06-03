@@ -246,7 +246,7 @@ function drawTileObject(tile, screenX, screenY, size, isPreview = false, isValid
   }
   
   // Draw connection labels (T, R, B, L in current orientation)
-  const effectiveConnections = tile.getConnections(); 
+  const effectiveConnections = tile.definition.connections; // Use original connections since canvas is already rotated
   fill(0,0,0, isPreview ? 128: 255); noStroke();
   textAlign(CENTER, CENTER); textSize(size * 0.2);
   if(effectiveConnections[0]) text(effectiveConnections[0],0,-size*0.35);      // Top
